@@ -13,7 +13,7 @@ logging.basicConfig(format="%(asctime)s : %(message)s", filename="log.log", enco
 apikeys = 0
 
 # Load settings from files and set settings varibles
-with open("apikeys.json", "r") as read_file:
+with open("data/apikeys.json", "r") as read_file:
     apikeys = json.load(read_file)
 
 systemid = apikeys["pluralkit"]["systemID"]
@@ -22,8 +22,8 @@ def writeSystem(r, *args, **kwargs):
     logging.info("Fetched system; checking for updates")
     
     # If file exists and is up to date stop the function
-    if os.path.isfile("system.json"):
-        with open("system.json", "r") as read_file:
+    if os.path.isfile("data/system.json"):
+        with open("data/system.json", "r") as read_file:
             localSystem = read_file.read()
             if localSystem == r.content:
                 logging.info("System headder unchanged")
@@ -31,15 +31,15 @@ def writeSystem(r, *args, **kwargs):
             
     logging.info("System header changed; updating local copy")
     # Otherwise overwrite the file with the new data from pluralkit
-    with open("system.json", "w") as systemFile:
+    with open("data/system.json", "w") as systemFile:
         systemFile.write(r.text)
 
 def writeMembers(r, *args, **kwargs):
     logging.info("Fetched members; checking for updates")
     
     # If file exists and is up to date stop the function
-    if os.path.isfile("members.json"):
-        with open("members.json", "r") as read_file:
+    if os.path.isfile("data/members.json"):
+        with open("data/members.json", "r") as read_file:
             localMembers = read_file.read()
             if localMembers == r.content:
                 logging.info("Member list unchanged")
@@ -47,7 +47,7 @@ def writeMembers(r, *args, **kwargs):
     
     logging.info("Member list changed; updating local copy")
     # Otherwise overwrite the file with the new data from pluralkit
-    with open("members.json", "w") as membersFile:
+    with open("data/members.json", "w") as membersFile:
         membersFile.write(r.text)
 
 def fetchFullSystem():

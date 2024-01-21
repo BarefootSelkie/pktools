@@ -1,9 +1,5 @@
 # Personal data
-apikeys.json
-members.json
-system.json
-switches.json
-lastseen.json
+data/*
 
 # Logging
 output.json
