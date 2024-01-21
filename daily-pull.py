@@ -11,12 +11,14 @@ logging.basicConfig(format="%(asctime)s : %(message)s", filename="log.log", enco
 
 # Define and clear varibles
 apikeys = 0
+pktoken = 0
 
 # Load settings from files and set settings varibles
 with open("data/apikeys.json", "r") as read_file:
     apikeys = json.load(read_file)
 
 systemid = apikeys["pluralkit"]["systemID"]
+pktoken = apikeys["pluralkit"]["token"]
 
 def writeSystem(r, *args, **kwargs):
     logging.info("Fetched system; checking for updates")
@@ -53,7 +55,7 @@ def writeMembers(r, *args, **kwargs):
 def fetchFullSystem():
     logging.info("Starting fetch")
     try:
-        requests.get("https://api.pluralkit.me/v2/systems/" + systemid, hooks={'response': writeSystem})
+        requests.get("https://api.pluralkit.me/v2/systems/" + systemid, hooks={'response': writeSystem}, headers={'Authorization':pktoken})
     except requests.exceptions.RequestException as e:
         # Fail silently
         logging.warning("Unable to fetch system header")
@@ -64,7 +66,7 @@ def fetchFullSystem():
     
     # Fetch the member list
     try:
-        requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/members", hooks={'response': writeMembers})
+        requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/members", hooks={'response': writeMembers}, headers={'Authorization':pktoken})
     except requests.exceptions.RequestException as e:
         # Fail silently
         logging.warning("Unable to fetch members")
