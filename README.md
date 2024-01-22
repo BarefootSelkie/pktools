@@ -1,8 +1,10 @@
 # pluralkit-time
-A library for getting fronting information from pluralkit, including who's fronting and how long it's been since someone fronted
+A set of useful tools that run on a rasberry pi to handle automatic switching out, displaying who's fronting, and tracking time since fronted.
+
+## Setup
 
 ### apikeys.json example
-```{
+``{
     "pluralkit": 
     {   
         "token": "",
@@ -14,4 +16,8 @@ A library for getting fronting information from pluralkit, including who's front
         "serverID": "",
         "userID": ""
     }
-}```
+}``
+
+### Cron job for switchout.py
+
+``0 0 * * * cd /home/pi && python3 ./switchout.py``
