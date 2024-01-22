@@ -37,6 +37,3 @@ def humanReadableHeadspaceTime(hsSec):
     remainder = hsSec % minutelength
 
     return (f"{cycles:d} cycles, {seasons:d} seasons, {weeks:d} weeks, {days:d} days, {segments:d} segments, {minutes:d} minutes")
-
-print(humanReadableHeadspaceTime(realspaceToHeadspace((5 * 60 * 60)+ (47 * 60))))
-

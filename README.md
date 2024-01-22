@@ -1,4 +1,4 @@
-# pluralkit-time
+# pk-timetools
 A set of useful tools that run on a rasberry pi to handle automatic switching out, displaying who's fronting, and tracking time since fronted.
 
 ## Setup
