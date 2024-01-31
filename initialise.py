@@ -30,7 +30,7 @@ def appendHistory(r, *args, **kwargs):
     if len(data) == 0:
         # nothing left - write out our results
         print(lastSeen)
-        with open("output.json", "w") as output_file:
+        with open("data/lastseen.json", "w") as output_file:
             output_file.write(json.dumps(lastSeen))
         exit()
 
@@ -54,6 +54,7 @@ def fetchFrontHistory(before):
         # Fail silently
         logging.warning("Unable to fetch front history block" + "1 - 100")
         logging.warning(e) 
-    
-fetchFrontHistory("2026-01-20T22:08:28.761839Z")
+
+# Using date far in future as too lazy to do datetime formmating right now    
+fetchFrontHistory("2030-01-01T00:00:00Z")
     
