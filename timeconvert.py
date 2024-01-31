@@ -6,10 +6,6 @@ import json
 import os
 import math
 
-# 1 sec realspace = 6 sec headspace
-# 10 sec realspace = 1 min headspace
-# 4 hrs realspace = 24 hrs headspace
-
 # lenghts of time units in headspace seconds
 minutelength = 60 # 60 headspace seconds
 segmentlength = minutelength * 60
