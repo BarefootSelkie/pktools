@@ -5,7 +5,7 @@ import json
 import logging
 import time
 import datetime
-import timeconvert 
+import pktools 
 
 # Logging setup
 logging.basicConfig(format="%(asctime)s : %(message)s", filename="log.log", encoding='utf-8', level=logging.INFO)
@@ -27,9 +27,23 @@ with open("data/lastseen.json", "r") as lsFile:
 with open("data/members.json", "r") as lsFile:
     members = json.load(lsFile)
 
+timeFromZero = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(apikeys["zeropoint"]))
+
+print("Current time : " + pktools.printhsTimeObject(
+    pktools.hsFractalTohsTimeObject(
+        pktools.rsSecondToFractal(timeFromZero.total_seconds())
+    )
+))
+
 for member in lastseen:
     timeago = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(lastseen[member]))
-    hstimeago = timeconvert.humanReadableHeadspaceTime(timeconvert.realspaceToHeadspace(timeago.total_seconds()))
+    hstimeago = pktools.printhsTimeObject(
+        pktools.hsFractalTohsTimeObject(
+            pktools.rsSecondToFractal(
+                timeago.total_seconds()
+            )
+        )
+    )
 
     who = [i for i in members if i["id"] == member][0]["name"]
 
