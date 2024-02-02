@@ -57,8 +57,15 @@ def hsFractalTohsTimeObject(fractals):
 
     return(hsTimeObject)
 
-def printhsTimeObject(hsTimeObject):
-    return (f"{hsTimeObject[0]:d} cycles, {hsTimeObject[1]:d} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
-
 def rsSecondToFractal(rsSeconds):
     return(rsSeconds // 400)
+
+### Headspace time date display ###
+# a collection of ways to dispay headspace time
+
+def shorthsTime(hsTimeObject):
+    return (f"{hsTimeObject[0]:d}-{hsTimeObject[1]:d}-{hsTimeObject[2]:d}-{hsTimeObject[3]:d} {hsTimeObject[4]:d}:{hsTimeObject[5]:d}")
+
+def longhsTime(hsTimeObject):
+    return (f"{hsTimeObject[0]:d} cycles, {hsTimeObject[1]:d} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
+

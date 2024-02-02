@@ -29,15 +29,15 @@ with open("data/members.json", "r") as lsFile:
 
 timeFromZero = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(apikeys["zeropoint"]))
 
-print("Current time : " + pktools.printhsTimeObject(
+print("Current time : " + pktools.longhsTime(
     pktools.hsFractalTohsTimeObject(
         pktools.rsSecondToFractal(timeFromZero.total_seconds())
     )
-))
+) + "\n")
 
 for member in lastseen:
     timeago = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(lastseen[member]))
-    hstimeago = pktools.printhsTimeObject(
+    hstimeago = pktools.shorthsTime(
         pktools.hsFractalTohsTimeObject(
             pktools.rsSecondToFractal(
                 timeago.total_seconds()
