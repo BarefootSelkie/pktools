@@ -3,7 +3,6 @@
 import requests
 import json
 import logging
-import time
 import datetime
 
 # Logging setup
@@ -60,6 +59,17 @@ def hsFractalTohsTimeObject(fractals):
 def rsSecondToFractal(rsSeconds):
     return(rsSeconds // 400)
 
+def hsNow():
+    timeFromZero = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(zeropoint))
+
+    hsNowObj = hsFractalTohsTimeObject(
+            rsSecondToFractal(
+                timeFromZero.total_seconds()
+            )
+        )
+
+    return (hsNowObj)
+            
 ### Headspace time date display ###
 # a collection of ways to dispay headspace time
 
@@ -68,4 +78,3 @@ def shorthsTime(hsTimeObject):
 
 def longhsTime(hsTimeObject):
     return (f"{hsTimeObject[0]:d} cycles, {hsTimeObject[1]:d} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
-

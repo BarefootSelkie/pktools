@@ -3,7 +3,6 @@
 import requests
 import json
 import logging
-import time
 import datetime
 import pktools 
 
@@ -27,13 +26,7 @@ with open("data/lastseen.json", "r") as lsFile:
 with open("data/members.json", "r") as lsFile:
     members = json.load(lsFile)
 
-timeFromZero = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(apikeys["zeropoint"]))
-
-print("Current time : " + pktools.longhsTime(
-    pktools.hsFractalTohsTimeObject(
-        pktools.rsSecondToFractal(timeFromZero.total_seconds())
-    )
-) + "\n")
+print("Current time : " + pktools.longhsTime(pktools.hsNow()) + "\n")
 
 for member in lastseen:
     timeago = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(lastseen[member]))
