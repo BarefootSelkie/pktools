@@ -26,19 +26,10 @@ with open("data/lastseen.json", "r") as lsFile:
 with open("data/members.json", "r") as lsFile:
     members = json.load(lsFile)
 
-print("Current time : " + pktools.longhsTime(pktools.hsNow()) + "\n")
+print("Current time : " + pktools.hsTimeHuman(pktools.hsTimeNow()) + "\n")
 
 for member in lastseen:
-    timeago = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(lastseen[member]))
-    hstimeago = pktools.shorthsTime(
-        pktools.hsFractalTohsTimeObject(
-            pktools.rsSecondToFractal(
-                timeago.total_seconds()
-            )
-        )
-    )
-
     who = [i for i in members if i["id"] == member][0]["name"]
 
-    print(str(who) + ": " + str(timeago) + " = " + str(hstimeago))
+    print(str(who) + ": " + str(pktools.rsLastSeen(member)) + " = " + pktools.hsTimeShort(pktools.hsLastSeen(member)))
     

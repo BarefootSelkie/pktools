@@ -26,6 +26,10 @@ A set of useful tools that run on a rasberry pi to handle automatic switching ou
 
 lastSeen(member) - returns when member was last seen based on member id
 
+save all pulled front history to file
+
+append data to file rather than recreating it
+
 allTime(member) - if member is included returns their total fronting time, if no member provided returns a list of all members and each of their total fronting time
 
 allPercent(member) - returns a list of all members and their percentage of fronting

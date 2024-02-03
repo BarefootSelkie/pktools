@@ -6,25 +6,33 @@ import logging
 import datetime
 
 # Logging setup
-logging.basicConfig(format="%(asctime)s : %(message)s", filename="log.log", encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktools.log", encoding='utf-8', level=logging.INFO)
 
 # Load settings from files and set settings varibles
 try:
     with open("data/apikeys.json", "r") as read_file:
-        apikeys = json.load(read_file)
+        pktsettings = json.load(read_file)
 except:
     logging.critical("API Keys missing")
     exit()
 
-systemid = apikeys["pluralkit"]["systemID"]
-pktoken = apikeys["pluralkit"]["token"]
-zeropoint = apikeys["zeropoint"]
+systemid = pktsettings["pluralkit"]["systemID"]
+pktoken = pktsettings["pluralkit"]["token"]
+zeropoint = pktsettings["zeropoint"]
 
-with open("data/lastseen.json", "r") as lsFile:
-    lastseen = json.load(lsFile)
+try:
+    with open("data/lastseen.json", "r") as lsFile:
+        lastseen = json.load(lsFile)
+except:
+    logging.critical("Last seen data missing")
+    exit()
 
-with open("data/members.json", "r") as lsFile:
-    members = json.load(lsFile)
+try:
+    with open("data/members.json", "r") as lsFile:
+        members = json.load(lsFile)
+except:
+    logging.critical("Member data missing")
+    exit()
 
 ### Time Converstion Functions ###
 
@@ -58,8 +66,11 @@ def hsFractalTohsTimeObject(fractals):
 
 def rsSecondToFractal(rsSeconds):
     return(rsSeconds // 400)
+            
+### Headspace time date display ###
+# a collection of ways to dispay headspace time
 
-def hsNow():
+def hsTimeNow():
     timeFromZero = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(zeropoint))
 
     hsNowObj = hsFractalTohsTimeObject(
@@ -69,12 +80,24 @@ def hsNow():
         )
 
     return (hsNowObj)
-            
-### Headspace time date display ###
-# a collection of ways to dispay headspace time
 
-def shorthsTime(hsTimeObject):
+def hsTimeShort(hsTimeObject):
     return (f"{hsTimeObject[0]:d}-{hsTimeObject[1]:d}-{hsTimeObject[2]:d}-{hsTimeObject[3]:d} {hsTimeObject[4]:d}:{hsTimeObject[5]:d}")
 
-def longhsTime(hsTimeObject):
+def hsTimeHuman(hsTimeObject):
     return (f"{hsTimeObject[0]:d} cycles, {hsTimeObject[1]:d} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
+
+### Member last seen, total front time, and percent fronted ###
+
+def rsLastSeen(member):
+    rsTimeAgo = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(lastseen[member]))
+    return (rsTimeAgo)
+
+def hsLastSeen(member):
+    rsTimeAgo = rsLastSeen(member)
+    hsTimeAgo = hsFractalTohsTimeObject(
+            rsSecondToFractal(
+                rsTimeAgo.total_seconds()
+            )
+        )
+    return(hsTimeAgo)
