@@ -23,8 +23,11 @@ systemid = apikeys["pluralkit"]["systemID"]
 pktoken = apikeys["pluralkit"]["token"]
 
 lastSeen = {}
+switches = []
+previousSwitch = None              
 
 def appendHistory(r, *args, **kwargs):
+    global previousSwitch
     logging.info("Appending history batch")
     data = r.json()
     if len(data) == 0:
@@ -35,10 +38,15 @@ def appendHistory(r, *args, **kwargs):
         exit()
 
     # items have a members list and timestamp
-    for item in data:
-        for member in item["members"]:
-            if member not in lastSeen:
-                lastSeen[member] = item["timestamp"]
+    for thisSwitch in data:
+
+        #Work out who switched out here
+        if previousSwitch is not None:
+            for member in thisSwitch["members"]:
+                if member not in lastSeen:
+                    if member not in previousSwitch["members"]:
+                        lastSeen[member] = previousSwitch["timestamp"]
+        previousSwitch = thisSwitch
 
     # get the next batch
     fetchFrontHistory(data[len(data) - 1]["timestamp"])
@@ -52,7 +60,7 @@ def fetchFrontHistory(before):
         requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=100&before=" + before, hooks={'response': appendHistory}, headers={'Authorization':pktoken})
     except requests.exceptions.RequestException as e:
         # Fail silently
-        logging.warning("Unable to fetch front history block" + "1 - 100")
+        logging.warning("Unable to fetch front history block " + before)
         logging.warning(e) 
 
 # Using date far in future as too lazy to do datetime formmating right now    
