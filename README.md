@@ -22,13 +22,29 @@ A set of useful tools that run on a rasberry pi to handle automatic switching ou
 
 ``0 0 * * * cd /home/pi && python3 ./switchout.py``
 
+## Implimented functions
+
+**rsSecondToFractal(rsSeconds)** takes in a period of time in seconds and converts it to a number of headspace fractals, designed to work with *datetime.total_seconds()*, returns an int
+
+**hsFractalTohsTimeObject(hsFractals)** converts an int of headspace fractals into a headspace date time object, returns [cycles, seasons, weeks, days, segments, fractals]
+
+**hsTimeNow()** gets the current time in headspace based on zeropoint in apikeys.json, returns [cycles, seasons, weeks, days, segments, fractals]
+
+hsTimeShort(hsTimeObject)
+
+hsTimeHuman(hsTimeObject)
+
+rsLastSeen(member)
+
+hsLastSeen(member)
+
 ## Missing functions
 
-lastSeen(member) - returns when member was last seen based on member id
+pullPeriodic - peridoically check to see if the current fronting member has changed and update lastseen.json ( only checks the last 6 switches )
 
-save all pulled front history to file
+pullBackUp - fetches the system and member objects from the server, ideally run daily
 
-append data to file rather than recreating it
+### Maybe not implementable if using a microcontroller with a small amount of memory:
 
 allTime(member) - if member is included returns their total fronting time, if no member provided returns a list of all members and each of their total fronting time
 
