@@ -34,6 +34,52 @@ except:
     logging.critical("Member data missing")
     exit()
 
+currentFronters = {}
+
+### Periodic data update functions ###
+    
+# Pull updates about current fronters and when fronters were last seen
+def pullPeriodic():
+    logging.info("Fetching periodic update")
+    try:
+        requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=2", hooks={'response': parseFronters}, headers={'Authorization':pktoken})
+    except requests.exceptions.RequestException as e:
+        # Fail silently
+        logging.warning("Unable to fetch periodic update")
+        logging.warning(e) 
+
+# Fetching and processing updates from PK
+def parseFronters(r, *args, **kwargs):
+    try:
+        fullData = json.loads(r.content)
+        
+        # 1) Update the list of current fronters and how long they have been fronting
+
+        # Remove anyone not fronting from the list of current fronters
+        for member in currentFronters:
+            if member not in fullData[0]['members']:
+                currentFronters.pop(member)
+        # Add in any new current fronters
+        for member in fullData[0]['members']:
+            if member not in currentFronters:
+                currentFronters[member] = fullData[0]['timestamp']
+
+        # 2) Update information about when people were last seen
+
+        # For each member fronting in the previous switch
+        for member in fullData[1]["members"]:
+            # if they are no longer fronting in this switch
+            if member not in fullData[0]["members"]:
+                # this member must have switched out, add this to the last seen data
+                lastseen[member] = fullData[0]["timestamp"]
+                #print("Switch out: " + member + " at " + fullData[0]["timestamp"])
+
+        # Todo: write the new information back to disc
+
+    except Exception as e:
+        logging.warning("Unable to parse JSON response: %s" % str(e))
+
+
 ### Time Converstion Functions ###
 
 # Time constands for headspace

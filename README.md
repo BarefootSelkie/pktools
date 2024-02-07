@@ -40,9 +40,9 @@ hsLastSeen(member)
 
 ## Missing functions
 
-- says now long the current fronting person has been fronting for
+- says how long each currently fronting person has been fronting for
 
-pullPeriodic - peridoically check to see if the current fronting member has changed and update lastseen.json ( only checks the last switch )
+pullPeriodic - peridoically check to see if the current fronting member has changed and update lastseen.json ( only checks the last switch ) and returns true or false based on whether a change has occurred
 
 pullBackUp - fetches the system and member objects from the server, ideally run daily
 
