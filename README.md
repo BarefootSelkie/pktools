@@ -1,4 +1,4 @@
-# pk-timetools
+# pktools
 A set of useful tools that run on a rasberry pi to handle automatic switching out, displaying who's fronting, and tracking time since fronted.
 
 ## Setup
@@ -40,7 +40,9 @@ hsLastSeen(member)
 
 ## Missing functions
 
-pullPeriodic - peridoically check to see if the current fronting member has changed and update lastseen.json ( only checks the last 6 switches )
+- says now long the current fronting person has been fronting for
+
+pullPeriodic - peridoically check to see if the current fronting member has changed and update lastseen.json ( only checks the last switch )
 
 pullBackUp - fetches the system and member objects from the server, ideally run daily
 
