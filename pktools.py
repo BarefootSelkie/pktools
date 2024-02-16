@@ -4,6 +4,7 @@ import requests
 import json
 import logging
 import datetime
+import time
 
 # Logging setup
 logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktools.log", encoding='utf-8', level=logging.INFO)
@@ -20,65 +21,92 @@ systemid = pktsettings["pluralkit"]["systemID"]
 pktoken = pktsettings["pluralkit"]["token"]
 zeropoint = pktsettings["zeropoint"]
 
+### Load in data stores and make globals from them ###
+
 try:
-    with open("data/lastseen.json", "r") as lsFile:
-        lastseen = json.load(lsFile)
+    with open("data/memberSeen.json", "r") as lsFile:
+        memberSeen = json.load(lsFile)
 except:
     logging.critical("Last seen data missing")
     exit()
 
 try:
     with open("data/members.json", "r") as lsFile:
-        members = json.load(lsFile)
+        pkMembers = json.load(lsFile)
+except:
+    logging.critical("Member data missing")
+    exit()
+
+try:
+    with open("data/system.json", "r") as lsFile:
+        pkSystem = json.load(lsFile)
 except:
     logging.critical("Member data missing")
     exit()
 
 currentFronters = {}
 
-### Periodic data update functions ###
-    
-# Pull updates about current fronters and when fronters were last seen
-def pullPeriodic():
-    logging.info("Fetching periodic update")
-    try:
-        requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=2", hooks={'response': parseFronters}, headers={'Authorization':pktoken})
-    except requests.exceptions.RequestException as e:
-        # Fail silently
-        logging.warning("Unable to fetch periodic update")
-        logging.warning(e) 
+### Creation of data stores ###
 
-# Fetching and processing updates from PK
-def parseFronters(r, *args, **kwargs):
-    try:
-        fullData = json.loads(r.content)
+def updateMemberSeen(switches):
+    # Switches are currently in reverse chronological order - make them in chronological order instead
+    switches.reverse()
+
+    previousSwitch = None
+    for thisSwitch in switches:
         
-        # 1) Update the list of current fronters and how long they have been fronting
+        # Skip the first switch in a batch
+        if previousSwitch is None:
+            previousSwitch = thisSwitch
+            continue
 
-        # Remove anyone not fronting from the list of current fronters
-        for member in currentFronters:
-            if member not in fullData[0]['members']:
-                currentFronters.pop(member)
-        # Add in any new current fronters
-        for member in fullData[0]['members']:
-            if member not in currentFronters:
-                currentFronters[member] = fullData[0]['timestamp']
+        for member in previousSwitch["members"]:
+            if member not in thisSwitch["members"]:
+                # A system member has left as of this switch
+                if memberSeen[member]["lastOut"] < thisSwitch["timestamp"]:
+                    memberSeen[member]["lastOut"] = thisSwitch["timestamp"]
 
-        # 2) Update information about when people were last seen
+        for member in thisSwitch["members"]:
+            if member not in previousSwitch["members"]:
+                # A system member has joined as of this switch
+                if memberSeen[member]["lastIn"] < thisSwitch["timestamp"]:
+                    memberSeen[member]["lastIn"] = thisSwitch["timestamp"]
+        
+        previousSwitch = thisSwitch
 
-        # For each member fronting in the previous switch
-        for member in fullData[1]["members"]:
-            # if they are no longer fronting in this switch
-            if member not in fullData[0]["members"]:
-                # this member must have switched out, add this to the last seen data
-                lastseen[member] = fullData[0]["timestamp"]
-                #print("Switch out: " + member + " at " + fullData[0]["timestamp"])
+    # Return timestamp for the switch that we are up-to-date after
+    return switches[1]["timestamp"]
 
-        # Todo: write the new information back to disc
+def pullMemberSeen():
 
-    except Exception as e:
-        logging.warning("Unable to parse JSON response: %s" % str(e))
+    pointer = datetime.datetime.now().isoformat(timespec="seconds") + "Z"
 
+    for member in pkMembers:  
+        memberSeen[member["id"]] = {"lastIn": zeropoint, "lastOut": zeropoint}  
+
+    while True:
+        try:
+            time.sleep(1)
+            logging.info("Getting switches before " + pointer)
+            r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=100&before=" + pointer, headers={'Authorization':pktoken})
+            switches = r.json()        
+            if (len(switches) < 2): break
+            pointer = updateMemberSeen(switches)
+        except requests.exceptions.RequestException as e:
+            # Fail silently
+            logging.warning("Unable to fetch front history block " + pointer)
+            logging.warning(e) 
+
+    with open("data/memberSeen.json", "w") as output_file:
+        output_file.write(json.dumps(memberSeen))
+
+### Data access functions ###
+
+# Return information about a particular system member
+def getMember(memberID):
+    return([i for i in pkMembers if i["id"] == memberID][0])
+
+### Periodic data update functions ###
 
 ### Time Converstion Functions ###
 
@@ -136,7 +164,7 @@ def hsTimeHuman(hsTimeObject):
 ### Member last seen, total front time, and percent fronted ###
 
 def rsLastSeen(member):
-    rsTimeAgo = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(lastseen[member]))
+    rsTimeAgo = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(memberSeen[member]["lastOut"]))
     return (rsTimeAgo)
 
 def hsLastSeen(member):

@@ -22,13 +22,17 @@ A set of useful tools that run on a rasberry pi to handle automatic switching ou
 
 ``0 0 * * * cd /home/pi && python3 ./switchout.py``
 
-## Data files
+## Data files & global varibles
 
-pkSwitches - backup of all switches pulled from PluralKit
-pkMembers - full list of system members and information about these members pulled from PluralKit - see https://pluralkit.me/api/models/
-pkSystem - data pulled from PluralKit about the system itself (e.g. system name) - see https://pluralkit.me/api/models/
-memberStats - dictionary from shortCode to lastIn, lastOut, where lastIn is the most recent time a system member fronted when they were not already switched in, and lastOut is the most recent time a system member stopped fronting
-currentFronters - list of shortcodes of currently fronting system members
+**memberSeen** dictionary from shortCode to lastIn, lastOut, where lastIn is the most recent time a system member fronted when they were not already switched in, and lastOut is the most recent time a system member stopped fronting
+
+**currentFronters** list of shortcodes of currently fronting system members
+
+**pkMembers** full list of system members and information about these members pulled from PluralKit [see PluralKit documentation](https://pluralkit.me/api/models/)
+
+**pkSwitches** backup of all switches pulled from PluralKit ( cureent only pulled by initialise and used for backup - future use in other stats )
+
+**pkSystem** data pulled from PluralKit about the system itself (e.g. system name) [see PluralKit documentation](https://pluralkit.me/api/models/)
 
 ## Implimented functions
 
@@ -49,6 +53,10 @@ hsLastSeen(member)
 ## Missing functions
 
 rsCurrentFrontingTime() - says how long each currently fronting person has been fronting for; returns list of objects with human readable member name, shortcode, realspace time interval elapsed since started fronting
+
+pullSystem()
+pullMembers()
+pullMemberSeen()
 
 pullPeriodic() - gets info about the most recent switch, and updates the list of current fronters and stats, and a boolean to indicate if the current fronter information has changed
 
