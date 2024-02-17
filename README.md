@@ -26,7 +26,7 @@ A set of useful tools that run on a rasberry pi to handle automatic switching ou
 
 **memberSeen** dictionary from shortCode to lastIn, lastOut, where lastIn is the most recent time a system member fronted when they were not already switched in, and lastOut is the most recent time a system member stopped fronting
 
-**currentFronters** list of shortcodes of currently fronting system members
+**lastSwitch** switch object from pluralkit describing the most recent known switch
 
 **pkMembers** full list of system members and information about these members pulled from PluralKit [see PluralKit documentation](https://pluralkit.me/api/models/)
 
@@ -50,21 +50,17 @@ rsLastSeen(member)
 
 hsLastSeen(member)
 
-## Missing functions
-
-rsCurrentFrontingTime() - says how long each currently fronting person has been fronting for; returns list of objects with human readable member name, shortcode, realspace time interval elapsed since started fronting
-
-pullSystem()
-pullMembers()
 pullMemberSeen()
 
 pullPeriodic() - gets info about the most recent switch, and updates the list of current fronters and stats, and a boolean to indicate if the current fronter information has changed
 
-INTERNAL:
-updateMemberStats(stats, switches)
-    given a batch of switches and existing member stats, updates the member stats with this information, and returns updated member stats
+rsSinceLastIn(member)
+hsSinceLastIn(member)
 
-pullBackUp - fetches the system and member objects from the server, ideally run daily
+## Missing functions
+
+pullSystem()
+pullMembers()
 
 ### Maybe not implementable if using a microcontroller with a small amount of memory:
 

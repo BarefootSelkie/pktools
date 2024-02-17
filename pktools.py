@@ -44,7 +44,12 @@ except:
     logging.critical("Member data missing")
     exit()
 
-currentFronters = {}
+try:
+    with open("data/lastSwitch.json", "r") as lsFile:
+        lastSwitch = json.load(lsFile)
+except:
+    logging.critical("Last switch data missing")
+    exit()
 
 ### Creation of data stores ###
 
@@ -108,6 +113,39 @@ def getMember(memberID):
 
 ### Periodic data update functions ###
 
+# Update information about current fronters and last seen
+# Returns: True if a switch has happened since last update, False otherwise
+def pullPeriodic():
+    global lastSwitch
+
+    switchOccurred = False
+
+    # Get data about the most recent switches
+    try:
+        logging.info("Getting most recent switches")
+        r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=100", headers={'Authorization':pktoken})
+        switches = r.json()
+
+        if (len(switches) > 1):
+            # 1) Check to see if a switch has occured
+            if switches[0]["id"] != lastSwitch["id"]:
+                switchOccurred = True
+                lastSwitch = switches[0]
+                with open("data/lastSwitch.json", "w") as output_file:
+                    output_file.write(json.dumps(lastSwitch))
+
+                # 3) Update the information about when fronters were last seen      
+                updateMemberSeen(switches)
+                with open("data/memberSeen.json", "w") as output_file:
+                    output_file.write(json.dumps(memberSeen))
+
+    except requests.exceptions.RequestException as e:
+        # Fail silently
+        logging.warning("Unable to fetch recent switches")
+        logging.warning(e) 
+
+    return switchOccurred
+
 ### Time Converstion Functions ###
 
 # Time constands for headspace
@@ -162,6 +200,18 @@ def hsTimeHuman(hsTimeObject):
     return (f"{hsTimeObject[0]:d} cycles, {hsTimeObject[1]:d} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
 
 ### Member last seen, total front time, and percent fronted ###
+
+def rsSinceLastIn(member):
+    return (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(memberSeen[member]["lastIn"]))
+
+def hsSinceLastIn(member):
+    rsTimeAgo = rsSinceLastIn(member)
+    hsTimeAgo = hsFractalTohsTimeObject(
+            rsSecondToFractal(
+                rsTimeAgo.total_seconds()
+            )
+        )
+    return(hsTimeAgo)
 
 def rsLastSeen(member):
     rsTimeAgo = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(memberSeen[member]["lastOut"]))
