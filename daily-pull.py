@@ -24,8 +24,8 @@ def writeSystem(r, *args, **kwargs):
     logging.info("Fetched system; checking for updates")
     
     # If file exists and is up to date stop the function
-    if os.path.isfile("data/system.json"):
-        with open("data/system.json", "r") as read_file:
+    if os.path.isfile("data/pkSystem.json"):
+        with open("data/pkSystem.json", "r") as read_file:
             localSystem = read_file.read()
             if localSystem == r.content:
                 logging.info("System headder unchanged")
@@ -33,15 +33,15 @@ def writeSystem(r, *args, **kwargs):
             
     logging.info("System header changed; updating local copy")
     # Otherwise overwrite the file with the new data from pluralkit
-    with open("data/system.json", "w") as systemFile:
+    with open("data/pkSystem.json", "w") as systemFile:
         systemFile.write(r.text)
 
 def writeMembers(r, *args, **kwargs):
     logging.info("Fetched members; checking for updates")
     
     # If file exists and is up to date stop the function
-    if os.path.isfile("data/members.json"):
-        with open("data/members.json", "r") as read_file:
+    if os.path.isfile("data/pkMembers.json"):
+        with open("data/pkMembers.json", "r") as read_file:
             localMembers = read_file.read()
             if localMembers == r.content:
                 logging.info("Member list unchanged")
@@ -49,7 +49,7 @@ def writeMembers(r, *args, **kwargs):
     
     logging.info("Member list changed; updating local copy")
     # Otherwise overwrite the file with the new data from pluralkit
-    with open("data/members.json", "w") as membersFile:
+    with open("data/pkMembers.json", "w") as membersFile:
         membersFile.write(r.text)
 
 def fetchFullSystem():

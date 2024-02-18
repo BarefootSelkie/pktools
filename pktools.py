@@ -31,14 +31,14 @@ except:
     exit()
 
 try:
-    with open("data/members.json", "r") as lsFile:
+    with open("data/pkMembers.json", "r") as lsFile:
         pkMembers = json.load(lsFile)
 except:
     logging.critical("Member data missing")
     exit()
 
 try:
-    with open("data/system.json", "r") as lsFile:
+    with open("data/pkSystem.json", "r") as lsFile:
         pkSystem = json.load(lsFile)
 except:
     logging.critical("Member data missing")
