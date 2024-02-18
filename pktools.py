@@ -116,6 +116,7 @@ def getMember(memberID):
 # Update information about current fronters and last seen
 # Returns: True if a switch has happened since last update, False otherwise
 def pullPeriodic():
+
     global lastSwitch
 
     switchOccurred = False
@@ -128,7 +129,7 @@ def pullPeriodic():
 
         if (len(switches) > 1):
             # 1) Check to see if a switch has occured
-            if switches[0]["id"] != lastSwitch["id"]:
+            if ("id" not in lastSwitch) or (switches[0]["id"] != lastSwitch["id"]):
                 switchOccurred = True
                 lastSwitch = switches[0]
                 with open("data/lastSwitch.json", "w") as output_file:
