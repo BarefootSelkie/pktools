@@ -184,7 +184,8 @@ def rsSecondToFractal(rsSeconds):
 # a collection of ways to dispay headspace time
 
 def toPythonDateTime(input):
-    return datetime.datetime.fromisoformat(input.replace("Z", ""))
+    print("converting " + input[0:19])
+    return datetime.datetime.fromisoformat(input[0:19])
 
 def hsTimeNow():
     timeFromZero = (datetime.datetime.utcnow() - toPythonDateTime(zeropoint))
