@@ -184,7 +184,7 @@ def rsSecondToFractal(rsSeconds):
 # a collection of ways to dispay headspace time
 
 def hsTimeNow():
-    timeFromZero = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(zeropoint))
+    timeFromZero = (datetime.datetime.utcnow() - datetime.datetime.fromisoformat(zeropoint))
 
     hsNowObj = hsFractalTohsTimeObject(
             rsSecondToFractal(
@@ -203,7 +203,7 @@ def hsTimeHuman(hsTimeObject):
 ### Member last seen, total front time, and percent fronted ###
 
 def rsSinceLastIn(member):
-    return (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(memberSeen[member]["lastIn"]))
+    return (datetime.datetime.utcnow() - datetime.datetime.fromisoformat(memberSeen[member]["lastIn"]))
 
 def hsSinceLastIn(member):
     rsTimeAgo = rsSinceLastIn(member)
@@ -215,7 +215,7 @@ def hsSinceLastIn(member):
     return(hsTimeAgo)
 
 def rsLastSeen(member):
-    rsTimeAgo = (datetime.datetime.now(datetime.UTC) - datetime.datetime.fromisoformat(memberSeen[member]["lastOut"]))
+    rsTimeAgo = (datetime.datetime.utcnow() - datetime.datetime.fromisoformat(memberSeen[member]["lastOut"]))
     return (rsTimeAgo)
 
 def hsLastSeen(member):
