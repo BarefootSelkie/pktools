@@ -184,7 +184,7 @@ def rsSecondToFractal(rsSeconds):
 # a collection of ways to dispay headspace time
 
 def toPythonDateTime(input):
-    # TOOD: this is horribly hacky way of translating the date
+    # TODO: this is horribly hacky way of translating the date
     # This is needed purely for supporting RPis with python 3.9 installed
     # This version of python does not understand pluralkit's datetimes
     # as they do not follow the exact format it is expecting
