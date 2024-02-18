@@ -184,7 +184,11 @@ def rsSecondToFractal(rsSeconds):
 # a collection of ways to dispay headspace time
 
 def toPythonDateTime(input):
-    print("converting " + input[0:19])
+    # TOOD: this is horribly hacky way of translating the date
+    # This is needed purely for supporting RPis with python 3.9 installed
+    # This version of python does not understand pluralkit's datetimes
+    # as they do not follow the exact format it is expecting
+    # Python 3.11 onwards does not have this issue
     return datetime.datetime.fromisoformat(input[0:19])
 
 def hsTimeNow():
