@@ -53,6 +53,8 @@ except:
 
 ### Creation of data stores ###
 
+# Given a batch of switches, updates the MemberSeen data
+# Returns: timestamp of the oldest switch that was input
 def updateMemberSeen(switches):
     # Switches are currently in reverse chronological order - make them in chronological order instead
     switches.reverse()
@@ -82,26 +84,37 @@ def updateMemberSeen(switches):
     # Return timestamp for the switch that we are up-to-date after
     return switches[1]["timestamp"]
 
+# Pulls entire switch history from pluralkit and updates MemberSeen to match
+# useful for initial setup of data, in normal use would call PullPeriodic() instead
+# This function writes the updated memberSeen to disk
+# returns: eventually, can take several minutes to run
 def pullMemberSeen():
 
+    # Pluralkit requires us to request switches in batches of at most 100 a time
+    # Keep track of where we have currently got up to
     pointer = datetime.datetime.now().isoformat(timespec="seconds") + "Z"
 
+    # Initiailise the MemberSeen object so that we have an entry for all system members
     for member in pkMembers:  
         memberSeen[member["id"]] = {"lastIn": zeropoint, "lastOut": zeropoint}  
 
+    # Keep requesting batches of switches from pluralkit
     while True:
         try:
             time.sleep(1)
             logging.info("Getting switches before " + pointer)
             r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=100&before=" + pointer, headers={'Authorization':pktoken})
             switches = r.json()        
+            # Stop if we've reached the very last switch
             if (len(switches) < 2): break
+            # Otherwise, use the batch of data we just received to update MemberSeen
             pointer = updateMemberSeen(switches)
         except requests.exceptions.RequestException as e:
             # Fail silently
             logging.warning("Unable to fetch front history block " + pointer)
             logging.warning(e) 
 
+    # Update the memberSeen file on the disk
     with open("data/memberSeen.json", "w") as output_file:
         output_file.write(json.dumps(memberSeen))
 
@@ -113,7 +126,7 @@ def getMember(memberID):
 
 ### Periodic data update functions ###
 
-# Update information about current fronters and last seen
+# Update information about current fronters and when they most recently switched in and out
 # Returns: True if a switch has happened since last update, False otherwise
 def pullPeriodic():
 
@@ -149,7 +162,7 @@ def pullPeriodic():
 
 ### Time Converstion Functions ###
 
-# Time constands for headspace
+# Time constants for headspace
 hsFractal = 1 # done like this to allow for future adding for smaller units
 hsSegmentLen = hsFractal * 6
 hsDayLen = hsSegmentLen * 6
@@ -157,6 +170,8 @@ hsWeekLen = hsDayLen * 6
 hsSeasonLen = hsWeekLen * 6
 hsCycleLen = hsSeasonLen * 6
 
+# Converts an int of headspace fractals into a headspace date time object
+# returns [cycles, seasons, weeks, days, segments, fractals]
 def hsFractalTohsTimeObject(fractals):
 
     hsTimeObject = [0,0,0,0,0,0]
@@ -177,12 +192,16 @@ def hsFractalTohsTimeObject(fractals):
 
     return(hsTimeObject)
 
+# Takes in a period of time in seconds and converts it to a number of headspace fractals
+# Designed to work with *datetime.total_seconds()*, returns an int
 def rsSecondToFractal(rsSeconds):
     return(rsSeconds // 400)
             
 ### Headspace time date display ###
 # a collection of ways to dispay headspace time
 
+# Convert a pluralkit string representing a datetime to a python datetime object
+# Returns: python datetime object
 def toPythonDateTime(input):
     # TODO: this is horribly hacky way of translating the date
     # This is needed purely for supporting RPis with python 3.9 installed
@@ -191,6 +210,8 @@ def toPythonDateTime(input):
     # Python 3.11 onwards does not have this issue
     return datetime.datetime.fromisoformat(input[0:19])
 
+# Gets the current time in headspace based on zeropoint in apikeys.json
+# returns: [cycles, seasons, weeks, days, segments, fractals]
 def hsTimeNow():
     timeFromZero = (datetime.datetime.utcnow() - toPythonDateTime(zeropoint))
 
@@ -202,17 +223,25 @@ def hsTimeNow():
 
     return (hsNowObj)
 
+# Convert a headspace time to a string 
+# Returns: time in the format "x-x-x-x x:x"
 def hsTimeShort(hsTimeObject):
     return (f"{hsTimeObject[0]:d}-{hsTimeObject[1]:d}-{hsTimeObject[2]:d}-{hsTimeObject[3]:d} {hsTimeObject[4]:d}:{hsTimeObject[5]:d}")
 
+# Convert a headspace time to a string
+# Returns: time in the format "x cycles, x seasons, x weeks, x days, x segments, x fractals"
 def hsTimeHuman(hsTimeObject):
     return (f"{hsTimeObject[0]:d} cycles, {hsTimeObject[1]:d} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
 
 ### Member last seen, total front time, and percent fronted ###
 
+# Get realsapce time elapsed since a memnber last started fronting
+# Returns: integer of realspace seconds since the member started fronting
 def rsSinceLastIn(member):
     return (datetime.datetime.utcnow() - toPythonDateTime(memberSeen[member]["lastIn"]))
 
+# Get headspace time elapsed since a member last started fronting
+# Returns: integer of headspace fractals since the member started fronting
 def hsSinceLastIn(member):
     rsTimeAgo = rsSinceLastIn(member)
     hsTimeAgo = hsFractalTohsTimeObject(
@@ -222,10 +251,14 @@ def hsSinceLastIn(member):
         )
     return(hsTimeAgo)
 
+# Get realsapce time elapsed since a member last stopped fronting
+# Returns: integer of realspace seconds since the member stopped fronting
 def rsLastSeen(member):
     rsTimeAgo = (datetime.datetime.utcnow() - toPythonDateTime(memberSeen[member]["lastOut"]))
     return (rsTimeAgo)
 
+# Get headspace time elapsed since a member last stopped fronting
+# Returns: integer of headspace fractals since the member stopped fronting
 def hsLastSeen(member):
     rsTimeAgo = rsLastSeen(member)
     hsTimeAgo = hsFractalTohsTimeObject(
