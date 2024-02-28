@@ -2,6 +2,16 @@
 A set of useful tools that run on a rasberry pi to handle automatic switching out, displaying who's fronting, and tracking time since fronted.
 
 ## Setup
+### initialise.py
+
+this is a script to completely rebuild all the data stores from scratch, it will overwrite any existing data with a download from pluralkit. it's intended to be run the first time the library is installed, or if something has gone so wrong that you need to scrape all the data and start over. it builds the following files:
+
+- pkSystem.json
+- pkMembers.json
+- pkGroups.json
+- pkSwitches.json
+
+it can also be used to backup pluralket systems
 
 ### apikeys.json example
 ``{
