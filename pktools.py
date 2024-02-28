@@ -84,39 +84,7 @@ def updateMemberSeen(switches):
     # Return timestamp for the switch that we are up-to-date after
     return switches[1]["timestamp"]
 
-# Pulls entire switch history from pluralkit and updates MemberSeen to match
-# useful for initial setup of data, in normal use would call PullPeriodic() instead
-# This function writes the updated memberSeen to disk
-# returns: eventually, can take several minutes to run
-def pullMemberSeen():
 
-    # Pluralkit requires us to request switches in batches of at most 100 a time
-    # Keep track of where we have currently got up to
-    pointer = datetime.datetime.now().isoformat(timespec="seconds") + "Z"
-
-    # Initiailise the MemberSeen object so that we have an entry for all system members
-    for member in pkMembers:  
-        memberSeen[member["id"]] = {"lastIn": zeropoint, "lastOut": zeropoint}  
-
-    # Keep requesting batches of switches from pluralkit
-    while True:
-        try:
-            time.sleep(1)
-            logging.info("Getting switches before " + pointer)
-            r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=100&before=" + pointer, headers={'Authorization':pktoken})
-            switches = r.json()        
-            # Stop if we've reached the very last switch
-            if (len(switches) < 2): break
-            # Otherwise, use the batch of data we just received to update MemberSeen
-            pointer = updateMemberSeen(switches)
-        except requests.exceptions.RequestException as e:
-            # Fail silently
-            logging.warning("Unable to fetch front history block " + pointer)
-            logging.warning(e) 
-
-    # Update the memberSeen file on the disk
-    with open("data/memberSeen.json", "w") as output_file:
-        output_file.write(json.dumps(memberSeen))
 
 ### Data access functions ###
 
