@@ -52,7 +52,7 @@ def buildPkMembers():
 # Get the raw data about system groups from the PluralKit API and save it to disk
 def buildPkGroups():
     try:
-        r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/groups", headers={'Authorization':pktoken})
+        r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/groups?with_members=true", headers={'Authorization':pktoken})
         with open("data/pkGroups.json", "w") as groupsFile:
             groupsFile.write(r.text)
     except requests.exceptions.RequestException as e:
