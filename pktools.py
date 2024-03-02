@@ -45,6 +45,13 @@ except:
     exit()
 
 try:
+    with open("data/pkGroups.json", "r") as lsFile:
+        pkGroups = json.load(lsFile)
+except:
+    logging.critical("Group data missing")
+    exit()
+
+try:
     with open("data/lastSwitch.json", "r") as lsFile:
         lastSwitch = json.load(lsFile)
 except:
