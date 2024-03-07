@@ -7,7 +7,7 @@ import datetime
 import time
 
 # Logging setup
-logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktools.log", encoding='utf-8', level=logging.WARN)
+logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktools.log", encoding='utf-8', level=logging.WARNING)
 
 # Load settings from files and set settings varibles
 try:
