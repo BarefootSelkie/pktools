@@ -128,7 +128,7 @@ def pullPeriodic():
                 with open("data/memberSeen.json", "w") as output_file:
                     output_file.write(json.dumps(memberSeen))
 
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         # Fail silently
         logging.warning("Unable to fetch recent switches")
         logging.warning(e) 
