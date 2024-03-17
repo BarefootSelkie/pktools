@@ -69,6 +69,11 @@ def updateMemberSeen(switches):
     previousSwitch = None
     for thisSwitch in switches:
         
+        # Create blank entries for any system members we haven't seen before
+        for member in thisSwitch["members"]:
+            if member not in memberSeen:
+                memberSeen[member] = {"lastIn": zeropoint, "lastOut": zeropoint}
+
         # Skip the first switch in a batch
         if previousSwitch is None:
             previousSwitch = thisSwitch
@@ -77,13 +82,13 @@ def updateMemberSeen(switches):
         for member in previousSwitch["members"]:
             if member not in thisSwitch["members"]:
                 # A system member has left as of this switch
-                if (member not in memberSeen) or (memberSeen[member]["lastOut"] < thisSwitch["timestamp"]):
+                if memberSeen[member]["lastOut"] < thisSwitch["timestamp"]:
                     memberSeen[member]["lastOut"] = thisSwitch["timestamp"]
 
         for member in thisSwitch["members"]:
             if member not in previousSwitch["members"]:
                 # A system member has joined as of this switch
-                if (member not in memberSeen) or (memberSeen[member]["lastIn"] < thisSwitch["timestamp"]):
+                if memberSeen[member]["lastIn"] < thisSwitch["timestamp"]:
                     memberSeen[member]["lastIn"] = thisSwitch["timestamp"]
         
         previousSwitch = thisSwitch
