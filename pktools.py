@@ -77,13 +77,13 @@ def updateMemberSeen(switches):
         for member in previousSwitch["members"]:
             if member not in thisSwitch["members"]:
                 # A system member has left as of this switch
-                if memberSeen[member]["lastOut"] < thisSwitch["timestamp"]:
+                if (member not in memberSeen) or (memberSeen[member]["lastOut"] < thisSwitch["timestamp"]):
                     memberSeen[member]["lastOut"] = thisSwitch["timestamp"]
 
         for member in thisSwitch["members"]:
             if member not in previousSwitch["members"]:
                 # A system member has joined as of this switch
-                if memberSeen[member]["lastIn"] < thisSwitch["timestamp"]:
+                if (member not in memberSeen) or (memberSeen[member]["lastIn"] < thisSwitch["timestamp"]):
                     memberSeen[member]["lastIn"] = thisSwitch["timestamp"]
         
         previousSwitch = thisSwitch
