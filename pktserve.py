@@ -10,6 +10,7 @@ import socketserver
 import socket
 import threading
 import time
+import argparse
 
 # Logging setup
 logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktserve.log", encoding='utf-8', level=logging.INFO)
@@ -25,6 +26,8 @@ except:
 systemid = config["pluralkit"]["systemID"]
 pktoken = config["pluralkit"]["token"]
 zeropoint = config["pluralkit"]["zeropoint"]
+rebuildRequired = False
+updateRequired = False
 
 # Web server setup
 
@@ -39,6 +42,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 def startWebServer():
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
         httpd.serve_forever()
+
+# argparse setup
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-u", "--update", action="store_true", help="Update system, member, & group data")
+parser.add_argument("-r", "--rebuild", action="store_true", help="Rebuild all data")
 
 ### Data store building functions ###
 
@@ -97,16 +106,31 @@ def sendMessage(messageText, mode):
 
 ### Main Code ###
 
+
+args = parser.parse_args()
+if args.update:
+    updateRequired = True
+if args.rebuild:
+    rebuildRequired = True
+
 # If there is no directory to store the data create it
 if not os.path.exists(os.path.expanduser(config["data"])):
     logging.info("No data store, creating directory")
     os.mkdir(os.path.expanduser(config["data"]))
+    updateRequired = True
+    rebuildRequired = True
 
 # On server startup fetch a fresh copy of the system from pluralkit
-buildPkSystem()
-buildPkMembers()
-buildPkGroups()
-buildLastSwitch()
+if updateRequired:
+    buildPkSystem()
+    buildPkMembers()
+    buildPkGroups()
+    buildLastSwitch()
+    updateRequired = False
+
+if rebuildRequired:
+    print("this would rebuild but i haven't built it yet -ry")
+    rebuildRequired = False
 
 try:
     threading.Thread(target=startWebServer, daemon=True).start()
