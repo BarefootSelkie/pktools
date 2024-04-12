@@ -1,6 +1,7 @@
 # Personal data
 data/*
-settings.yaml
+config-pkts.yaml
+config-pktc.yaml
 
 # Logging
 output.json
