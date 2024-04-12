@@ -1,5 +1,6 @@
 # Personal data
 data/*
+settings.yaml
 
 # Logging
 output.json
