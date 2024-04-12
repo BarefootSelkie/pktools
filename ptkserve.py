@@ -83,14 +83,6 @@ def buildLastSwitch():
         logging.warning("PluralKit requests.get ( buildPkSwitch )")
         logging.warning(e) 
 
-### Main Code ###
-
-if os.path.exists(os.path.expanduser(config["data"])):
-    logging.info("Data store directory exists")
-else:
-    logging.info("Making data store directory")
-    os.mkdir(os.path.expanduser(config["data"]))
-
 ### Discord message sending ###
 # Used for notifiying of swtiches and also for server startup
 
@@ -102,6 +94,13 @@ def sendMessage(messageText, mode):
     except Exception as e:
         logging.warning("Discord error ( sendMessage )")
         logging.warning(e) 
+
+### Main Code ###
+
+# If there is no directory to store the data create it
+if not os.path.exists(os.path.expanduser(config["data"])):
+    logging.info("No data store, creating directory")
+    os.mkdir(os.path.expanduser(config["data"]))
 
 # On server startup fetch a fresh copy of the system from pluralkit
 buildPkSystem()
