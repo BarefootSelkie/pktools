@@ -23,6 +23,15 @@ systemid = config["pluralkit"]["systemID"]
 pktoken = config["pluralkit"]["token"]
 zeropoint = config["pluralkit"]["zeropoint"]
 
+PORT = 8080
+
+# Web server setup
+class Handler(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=os.path.expanduser(config["data"]), **kwargs)
+    def log_message(self, format, *args):
+        return
+
 ### Data store building functions ###
 
 # Get the raw system data from the PluralKit API and save it to disk
@@ -31,7 +40,7 @@ def buildPkSystem():
         r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid, headers={'Authorization':pktoken})
         with open(os.path.expanduser(config["data"]) + "/pkSystem.json", "w") as systemFile:
             systemFile.write(r.text)
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         logging.warning("Unable to fetch system data")
         logging.warning(e) 
 
@@ -41,7 +50,7 @@ def buildPkMembers():
         r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/members", headers={'Authorization':pktoken})
         with open(os.path.expanduser(config["data"]) + "/pkMembers.json", "w") as memberFile:
             memberFile.write(r.text)
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         logging.warning("Unable to fetch member data")
         logging.warning(e) 
 
@@ -51,7 +60,7 @@ def buildPkGroups():
         r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/groups?with_members=true", headers={'Authorization':pktoken})
         with open(os.path.expanduser(config["data"]) + "/pkGroups.json", "w") as groupsFile:
             groupsFile.write(r.text)
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         logging.warning("Unable to fetch groups data")
         logging.warning(e)
 
@@ -62,7 +71,7 @@ def buildLastSwitch():
         switches = r.json()
         with open(os.path.expanduser(config["data"]) + "/lastSwitch.json", "w") as outputFile:
             outputFile.write(json.dumps(switches[0]))
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         logging.warning("Unable to fetch last switch data")
         logging.warning(e) 
 
@@ -82,8 +91,8 @@ def sendMessage(messageText, mode):
     message = {"content": messageText}
     try:
         requests.post("https://discord.com/api/webhooks/" + config["discord"][mode]["serverID"] + "/" + config["discord"][mode]["token"], message)
-    except requests.exceptions.RequestException as e:
-        logging.warning("Unable to send message to discord")
+    except Exception as e:
+        logging.warning("Discord error ( sendMessage )")
         logging.warning(e) 
 
 # On server startup fetch a fresh copy of the system from pluralkit
@@ -92,9 +101,10 @@ buildPkMembers()
 buildPkGroups()
 buildLastSwitch()
 
-PORT = 8080
-Handler = http.server.SimpleHTTPRequestHandler
-
-with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print("serving at port", PORT)
-    httpd.serve_forever()
+try:
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print("serving at port", PORT)
+        httpd.serve_forever()
+except Exception as e:
+        logging.warning("Web server error ( main )")
+        logging.warning(e) 
