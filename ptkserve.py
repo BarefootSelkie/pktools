@@ -5,6 +5,8 @@ import yaml
 import json
 import os
 import requests
+import http.server
+import socketserver
 
 # Logging setup
 logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktserve.log", encoding='utf-8', level=logging.INFO)
@@ -72,8 +74,27 @@ else:
     logging.info("Making data store directory")
     os.mkdir(os.path.expanduser(config["data"]))
 
+### Discord message sending ###
+# Used for notifiying of swtiches and also for server startup
+
+def sendMessage(messageText, mode):
+    logging.info("Sending Discord message")
+    message = {"content": messageText}
+    try:
+        requests.post("https://discord.com/api/webhooks/" + config["discord"][mode]["serverID"] + "/" + config["discord"][mode]["token"], message)
+    except requests.exceptions.RequestException as e:
+        logging.warning("Unable to send message to discord")
+        logging.warning(e) 
+
 # On server startup fetch a fresh copy of the system from pluralkit
 buildPkSystem()
 buildPkMembers()
 buildPkGroups()
 buildLastSwitch()
+
+PORT = 8080
+Handler = http.server.SimpleHTTPRequestHandler
+
+with socketserver.TCPServer(("", PORT), Handler) as httpd:
+    print("serving at port", PORT)
+    httpd.serve_forever()
