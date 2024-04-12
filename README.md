@@ -1,6 +1,8 @@
 # pktools
 A set of useful tools that run on a rasberry pi to handle automatic switching out, displaying who's fronting, and tracking time since fronted.
 
+**WARNING: This will create a copy of your pluralkit system on your local network, make sure your firewall and sercurity settings are good enough that you are happy doing this**
+
 ## Setup
 ### initialise.py
 
