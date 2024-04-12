@@ -7,6 +7,9 @@ import os
 import requests
 import http.server
 import socketserver
+import socket
+import threading
+import time
 
 # Logging setup
 logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktserve.log", encoding='utf-8', level=logging.INFO)
@@ -23,14 +26,19 @@ systemid = config["pluralkit"]["systemID"]
 pktoken = config["pluralkit"]["token"]
 zeropoint = config["pluralkit"]["zeropoint"]
 
+# Web server setup
+
 PORT = 8080
 
-# Web server setup
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=os.path.expanduser(config["data"]), **kwargs)
     def log_message(self, format, *args):
         return
+    
+def startWebServer():
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        httpd.serve_forever()
 
 ### Data store building functions ###
 
@@ -41,7 +49,7 @@ def buildPkSystem():
         with open(os.path.expanduser(config["data"]) + "/pkSystem.json", "w") as systemFile:
             systemFile.write(r.text)
     except Exception as e:
-        logging.warning("Unable to fetch system data")
+        logging.warning("PluralKit requests.get ( buildPkSystem )")
         logging.warning(e) 
 
 # Get the raw data about system members from the PluralKit API and save it to disk
@@ -51,7 +59,7 @@ def buildPkMembers():
         with open(os.path.expanduser(config["data"]) + "/pkMembers.json", "w") as memberFile:
             memberFile.write(r.text)
     except Exception as e:
-        logging.warning("Unable to fetch member data")
+        logging.warning("PluralKit requests.get ( buildPkMembers )")
         logging.warning(e) 
 
 # Get the raw data about system groups from the PluralKit API and save it to disk
@@ -61,7 +69,7 @@ def buildPkGroups():
         with open(os.path.expanduser(config["data"]) + "/pkGroups.json", "w") as groupsFile:
             groupsFile.write(r.text)
     except Exception as e:
-        logging.warning("Unable to fetch groups data")
+        logging.warning("PluralKit requests.get ( buildPkGroups )")
         logging.warning(e)
 
 # Get the raw data about the most recent switch from the PluralKit API and save it to disk
@@ -72,7 +80,7 @@ def buildLastSwitch():
         with open(os.path.expanduser(config["data"]) + "/lastSwitch.json", "w") as outputFile:
             outputFile.write(json.dumps(switches[0]))
     except Exception as e:
-        logging.warning("Unable to fetch last switch data")
+        logging.warning("PluralKit requests.get ( buildPkSwitch )")
         logging.warning(e) 
 
 ### Main Code ###
@@ -90,7 +98,7 @@ def sendMessage(messageText, mode):
     logging.info("Sending Discord message")
     message = {"content": messageText}
     try:
-        requests.post("https://discord.com/api/webhooks/" + config["discord"][mode]["serverID"] + "/" + config["discord"][mode]["token"], message)
+        requests.post("https://discord.com/api/webhooks/" + str(config["discord"][mode]["serverID"]) + "/" + config["discord"][mode]["token"], message)
     except Exception as e:
         logging.warning("Discord error ( sendMessage )")
         logging.warning(e) 
@@ -102,9 +110,15 @@ buildPkGroups()
 buildLastSwitch()
 
 try:
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print("serving at port", PORT)
-        httpd.serve_forever()
+    threading.Thread(target=startWebServer, daemon=True).start()
+    hostname = socket.gethostname()
+    ipAdr = socket.gethostbyname(hostname)
+    message = "pktserve up\n" + "http://" + str(ipAdr) + ":" + str(PORT)
+    sendMessage(message, "full")
 except Exception as e:
         logging.warning("Web server error ( main )")
-        logging.warning(e) 
+        logging.warning(e)
+
+while True:
+    time.sleep(10)
+    print("running")
