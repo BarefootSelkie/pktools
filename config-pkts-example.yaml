@@ -3,6 +3,7 @@ pluralkit:
   systemID: 
   zeropoint: "2000-01-01T00:00:00Z"
   defaultFronter: 
+  updateInterval: 5
 
 discord:
   pingUserID: 
@@ -14,3 +15,5 @@ discord:
     enabled: true
     token: 
     serverID: 
+
+data: "~/.pktools"
