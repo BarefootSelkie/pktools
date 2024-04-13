@@ -106,7 +106,7 @@ def sendMessage(messageText, mode):
 
 ### Main Code ###
 
-
+# Check for passed in args and set flags as required
 args = parser.parse_args()
 if args.update:
     updateRequired = True
@@ -117,21 +117,18 @@ if args.rebuild:
 if not os.path.exists(os.path.expanduser(config["data"])):
     logging.info("No data store, creating directory")
     os.mkdir(os.path.expanduser(config["data"]))
-    updateRequired = True
-    rebuildRequired = True
 
-# On server startup fetch a fresh copy of the system from pluralkit
-if updateRequired:
+# Check that each file exists
+if not os.path.exists(os.path.expanduser(config["data"] + "/pkSystem.json")):
     buildPkSystem()
+if not os.path.exists(os.path.expanduser(config["data"] + "/pkMembers.json")):
     buildPkMembers()
+if not os.path.exists(os.path.expanduser(config["data"] + "/pkGroups.json")):
     buildPkGroups()
+if not os.path.exists(os.path.expanduser(config["data"] + "/lastSwitch.json")):
     buildLastSwitch()
-    updateRequired = False
 
-if rebuildRequired:
-    print("this would rebuild but i haven't built it yet -ry")
-    rebuildRequired = False
-
+# Start the server
 try:
     threading.Thread(target=startWebServer, daemon=True).start()
     hostname = socket.gethostname()
@@ -139,9 +136,27 @@ try:
     message = "pktserve up\n" + "http://" + str(ipAdr) + ":" + str(PORT)
     sendMessage(message, "full")
 except Exception as e:
-        logging.warning("Web server error ( main )")
-        logging.warning(e)
+    logging.warning("Web server error ( main )")
+    logging.warning(e)
+    exit()
+
+### Loop Starts Here ###    
 
 while True:
+    # If an update is required or forced by arg do the update
+    if updateRequired:
+        logging.info("Updating pkSystem, pkMembers, pkGroups, lastSwtich")
+        buildPkSystem()
+        buildPkMembers()
+        buildPkGroups()
+        buildLastSwitch()
+        updateRequired = False
+
+    # If a rebuild is required or forced by arg do the update
+    if rebuildRequired:
+        print("Rebuilding swtiches, this can take several minutes")
+        logging.info("Rebuilding mmemberSeen")
+        rebuildRequired = False
+
     time.sleep(10)
     print("running")
