@@ -11,6 +11,7 @@ import socket
 import threading
 import time
 import argparse
+import datetime
 
 # Logging setup
 logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktserve.log", encoding='utf-8', level=logging.INFO)
@@ -49,48 +50,169 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--update", action="store_true", help="Update system, member, & group data")
 parser.add_argument("-r", "--rebuild", action="store_true", help="Rebuild all data")
 
-### Data store building functions ###
+### Data store loading functions ###
+# Loads in data stores and make globals from them
+class pktState:
+    def __init__(self):
+        self.pkSystem = None
+        self.pkMembers = None
+        self.pkGroups = None
+        self.lastSwitch = None
+        self.memberSeen = {}
+        self.dataLocation = os.path.expanduser(config["data"])
 
-# Get the raw system data from the PluralKit API and save it to disk
-def buildPkSystem():
-    try:
-        r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid, headers={'Authorization':pktoken})
-        with open(os.path.expanduser(config["data"]) + "/pkSystem.json", "w") as systemFile:
-            systemFile.write(r.text)
-    except Exception as e:
-        logging.warning("PluralKit requests.get ( buildPkSystem )")
-        logging.warning(e) 
+    def loadPkSystem(self):
+        try:
+            with open(self.dataLocation + "/pkSystem.json", "r") as lsFile:
+                self.pkSystem = json.load(lsFile)
+        except:
+            logging.critical("Member data missing")
+            exit()
+    def loadPkMembers(self):
+        try:
+            with open(self.dataLocation + "/pkMembers.json", "r") as lsFile:
+                self.pkMembers = json.load(lsFile)
+        except:
+            logging.critical("Member data missing")
+            exit()
+    def loadPkGroups(self):
+        try:
+            with open(self.dataLocation + "/pkGroups.json", "r") as lsFile:
+                self.pkGroups = json.load(lsFile)
+        except:
+            logging.critical("Group data missing")
+            exit()
+    def loadLastSwitch(self):
+        try:
+            with open(self.dataLocation + "/lastSwitch.json", "r") as lsFile:
+                self.lastSwitch = json.load(lsFile)
+        except:
+            logging.critical("Last switch data missing")
+            exit()
+    def loadMemberSeen(self):
+        try:
+            with open(self.dataLocation + "/memberSeen.json", "r") as lsFile:
+                self.memberSeen = json.load(lsFile)
+        except:
+            logging.critical("Last seen data missing")
+            exit()
 
-# Get the raw data about system members from the PluralKit API and save it to disk
-def buildPkMembers():
-    try:
-        r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/members", headers={'Authorization':pktoken})
-        with open(os.path.expanduser(config["data"]) + "/pkMembers.json", "w") as memberFile:
-            memberFile.write(r.text)
-    except Exception as e:
-        logging.warning("PluralKit requests.get ( buildPkMembers )")
-        logging.warning(e) 
+    # Given a batch of switches, updates the MemberSeen data
+    # Returns: timestamp of the oldest switch that was input
+    def updateMemberSeen(self, switches):
+        # Switches are currently in reverse chronological order - make them in chronological order instead
+        switches.reverse()
 
-# Get the raw data about system groups from the PluralKit API and save it to disk
-def buildPkGroups():
-    try:
-        r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/groups?with_members=true", headers={'Authorization':pktoken})
-        with open(os.path.expanduser(config["data"]) + "/pkGroups.json", "w") as groupsFile:
-            groupsFile.write(r.text)
-    except Exception as e:
-        logging.warning("PluralKit requests.get ( buildPkGroups )")
-        logging.warning(e)
+        previousSwitch = None
+        for thisSwitch in switches:
+            
+            # Skip the first switch in a batch
+            if previousSwitch is None:
+                previousSwitch = thisSwitch
+                continue
 
-# Get the raw data about the most recent switch from the PluralKit API and save it to disk
-def buildLastSwitch():
-    try:
-        r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=1", headers={'Authorization':pktoken})
-        switches = r.json()
-        with open(os.path.expanduser(config["data"]) + "/lastSwitch.json", "w") as outputFile:
-            outputFile.write(json.dumps(switches[0]))
-    except Exception as e:
-        logging.warning("PluralKit requests.get ( buildPkSwitch )")
-        logging.warning(e) 
+            for member in previousSwitch["members"]:
+                if member not in thisSwitch["members"]:
+                    # A system member has left as of this switch
+                    if self.memberSeen[member]["lastOut"] < thisSwitch["timestamp"]:
+                        self.memberSeen[member]["lastOut"] = thisSwitch["timestamp"]
+
+            for member in thisSwitch["members"]:
+                if member not in previousSwitch["members"]:
+                    # A system member has joined as of this switch
+                    if self.memberSeen[member]["lastIn"] < thisSwitch["timestamp"]:
+                        self.memberSeen[member]["lastIn"] = thisSwitch["timestamp"]
+            
+            previousSwitch = thisSwitch
+
+        # Return timestamp for the switch that we are up-to-date after
+        return switches[1]["timestamp"]
+
+    ### Data store building functions ###
+
+    # Get the raw system data from the PluralKit API and save it to disk
+    def buildPkSystem():
+        logging.info("( buildPkSystem )")
+        try:
+            r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid, headers={'Authorization':pktoken})
+            with open(os.path.expanduser(config["data"]) + "/pkSystem.json", "w") as systemFile:
+                systemFile.write(r.text)
+        except Exception as e:
+            logging.warning("PluralKit requests.get ( buildPkSystem )")
+            logging.warning(e) 
+
+    # Get the raw data about system members from the PluralKit API and save it to disk
+    def buildPkMembers():
+        logging.info("( buildPkMembers )")
+        try:
+            r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/members", headers={'Authorization':pktoken})
+            with open(os.path.expanduser(config["data"]) + "/pkMembers.json", "w") as memberFile:
+                memberFile.write(r.text)
+        except Exception as e:
+            logging.warning("PluralKit requests.get ( buildPkMembers )")
+            logging.warning(e) 
+
+    # Get the raw data about system groups from the PluralKit API and save it to disk
+    def buildPkGroups():
+        logging.info("( buildPkGroups )")
+        try:
+            r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/groups?with_members=true", headers={'Authorization':pktoken})
+            with open(os.path.expanduser(config["data"]) + "/pkGroups.json", "w") as groupsFile:
+                groupsFile.write(r.text)
+        except Exception as e:
+            logging.warning("PluralKit requests.get ( buildPkGroups )")
+            logging.warning(e)
+
+    # Get the raw data about the most recent switch from the PluralKit API and save it to disk
+    def buildLastSwitch():
+        logging.info("( buildLastSwtich )")
+        try:
+            r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=1", headers={'Authorization':pktoken})
+            switches = r.json()
+            with open(os.path.expanduser(config["data"]) + "/lastSwitch.json", "w") as outputFile:
+                outputFile.write(json.dumps(switches[0]))
+        except Exception as e:
+            logging.warning("PluralKit requests.get ( buildPkSwitch )")
+            logging.warning(e)
+
+    # Pulls entire switch history from pluralkit and builds memberSeen from this
+    # useful for initial setup of data, in normal use would call PullPeriodic() instead
+    # This function writes the updated memberSeen to disk
+    # returns: eventually, can take several minutes to run
+    def buildMemberSeen(self):
+        # Warn the user that this takes a long time
+        print("Rebuilding swtiches, this can take several minutes")
+        logging.info("( buildMemberSeen )")
+                     
+        self.loadPkMembers()
+
+        # Pluralkit requires us to request switches in batches of at most 100 a time
+        # Keep track of where we have currently got up to
+        pointer = datetime.datetime.now().isoformat(timespec="seconds") + "Z"
+
+        # Initiailise the MemberSeen object so that we have an entry for all system members
+        for member in self.pkMembers:  
+            self.memberSeen[member["id"]] = {"lastIn": zeropoint, "lastOut": zeropoint}  
+
+        # Keep requesting batches of switches from pluralkit
+        while True:
+            try:
+                time.sleep(1) # flood protection
+                logging.info("Getting switches before " + pointer)
+                r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=100&before=" + pointer, headers={'Authorization':pktoken})
+                switches = r.json()        
+                # Stop if we've reached the very last switch
+                if (len(switches) < 2): break
+                # Otherwise, use the batch of data we just received to update MemberSeen
+                pointer = self.updateMemberSeen(switches)
+            except requests.exceptions.RequestException as e:
+                # Fail silently
+                logging.warning("Unable to fetch front history block " + pointer)
+                logging.warning(e) 
+
+        # Update the memberSeen file on the disk
+        with open(self.dataLocation + "/memberSeen.json", "w") as output_file:
+            output_file.write(json.dumps(self.memberSeen))
 
 ### Discord message sending ###
 # Used for notifiying of swtiches and also for server startup
@@ -118,17 +240,22 @@ if not os.path.exists(os.path.expanduser(config["data"])):
     logging.info("No data store, creating directory")
     os.mkdir(os.path.expanduser(config["data"]))
 
+# Create an object to represent the state of the system
+state = pktState()
+
 # Check that each file exists
 if not os.path.exists(os.path.expanduser(config["data"] + "/pkSystem.json")):
-    buildPkSystem()
+    state.buildPkSystem()
 if not os.path.exists(os.path.expanduser(config["data"] + "/pkMembers.json")):
-    buildPkMembers()
+    state.buildPkMembers()
 if not os.path.exists(os.path.expanduser(config["data"] + "/pkGroups.json")):
-    buildPkGroups()
+    state.buildPkGroups()
 if not os.path.exists(os.path.expanduser(config["data"] + "/lastSwitch.json")):
-    buildLastSwitch()
+    state.buildLastSwitch()
+if not os.path.exists(os.path.expanduser(config["data"] + "/memberSeen.json")):
+    state.buildMemberSeen()
 
-# Start the server
+# Start the web server
 try:
     threading.Thread(target=startWebServer, daemon=True).start()
     hostname = socket.gethostname()
@@ -140,23 +267,37 @@ except Exception as e:
     logging.warning(e)
     exit()
 
+reloadRequired = True
+
 ### Loop Starts Here ###    
 
 while True:
+
+    if reloadRequired:
+        state.loadPkSystem()
+        state.loadPkMembers()
+        state.loadPkGroups()
+        state.loadLastSwitch()
+        state.loadMemberSeen()
+        reloadRequired = False               
+
     # If an update is required or forced by arg do the update
     if updateRequired:
         logging.info("Updating pkSystem, pkMembers, pkGroups, lastSwtich")
-        buildPkSystem()
-        buildPkMembers()
-        buildPkGroups()
-        buildLastSwitch()
+        state.buildPkSystem()
+        state.buildPkMembers()
+        state.buildPkGroups()
+        state.buildLastSwitch()
         updateRequired = False
+        reloadRequired = True
 
     # If a rebuild is required or forced by arg do the update
     if rebuildRequired:
-        print("Rebuilding swtiches, this can take several minutes")
-        logging.info("Rebuilding mmemberSeen")
+        state.buildMemberSeen()
         rebuildRequired = False
+        reloadRequired = True
+
+    # At 4:00 run an update
 
     time.sleep(10)
     print("running")
