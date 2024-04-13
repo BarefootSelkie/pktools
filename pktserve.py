@@ -12,6 +12,7 @@ import threading
 import time
 import argparse
 import datetime
+import pktools
 
 # Logging setup
 logging.basicConfig(format="%(asctime)s : %(message)s", filename="pktserve.log", encoding='utf-8', level=logging.INFO)
@@ -213,6 +214,39 @@ class pktState:
         # Update the memberSeen file on the disk
         with open(self.dataLocation + "/memberSeen.json", "w") as output_file:
             output_file.write(json.dumps(self.memberSeen))
+            ### Periodic data update functions ###
+
+    # Update information about current fronters and when they most recently switched in and out
+    # Returns: True if a switch has happened since last update, False otherwise
+    def pullPeriodic(self):
+        switchOccurred = False
+
+        # Get data about the most recent switches
+        try:
+            logging.info("Getting most recent switches")
+            r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=100", headers={'Authorization':pktoken})
+            switches = r.json()
+
+            if (len(switches) > 1):
+                # 1) Check to see if a switch has occured
+                if ("id" not in self.lastSwitch) or (switches[0]["id"] != self.lastSwitch["id"]):
+                    switchOccurred = True
+                    self.lastSwitch = switches[0]
+                    with open(self.dataLocation + "/lastSwitch.json", "w") as output_file:
+                        output_file.write(json.dumps(self.lastSwitch))
+
+                    # 3) Update the information about when fronters were last seen      
+                    self.updateMemberSeen(switches)
+                    with open(self.dataLocation + "/memberSeen.json", "w") as output_file:
+                        output_file.write(json.dumps(self.memberSeen))
+
+        except Exception as e:
+            # Fail silently
+            logging.warning("Unable to fetch recent switches ( pullPeriodic )")
+            logging.warning(e) 
+
+        return switchOccurred
+
 
 ### Discord message sending ###
 # Used for notifiying of swtiches and also for server startup
@@ -270,8 +304,68 @@ except Exception as e:
 reloadRequired = True
 
 ### Loop Starts Here ###    
+minutePast = 0
 
 while True:
+    # Don't do anyting if the minute hasn't changed
+    if minutePast != time.localtime()[4]:
+        minutePast = time.localtime()[4]
+
+        if ( time.localtime()[4] % config["updateInterval"] ) == 0:
+            updateNeeded = state.pullPeriodic()
+
+            # If pullPeriodic returns true update the screen and unset updateNeeded
+            if updateNeeded:
+                
+                # Check if not switched out
+                if len(state.lastSwitch["members"]) > 0:
+
+                    # Build and send full message
+                    if config["discord"]["full"]["enabled"]:
+                        
+                        index = len(state.lastSwitch["members"])
+                        message = "Hi, "
+                    
+                        for id in state.lastSwitch["members"]:
+                            index = index - 1
+                            member, privacy = pktools.getMember(id, state.pkMembers)
+                            message = message + member["name"]
+
+                            if member["pronouns"] is not None:
+                                message = message + " ( " + member["pronouns"] + " )"
+                            
+                            message = message + "\nYou last fronted:\n" + str(pktools.rsLastSeen(id, state.memberSeen))[:-10] + " ago\n" + str(pktools.hsTimeShort(pktools.hsLastSeen(id, state.memberSeen))) 
+                            
+                            if index != 0:
+                                message = message + "\n---\n"
+                        
+                        sendMessage(message, "full")
+                    
+                    # Build and send filtered message
+                    if config["discord"]["filtered"]["enabled"]:
+                        
+                        index = len(state.lastSwitch["members"])
+                        message = "Hi, "
+                        
+                        for id in state.lastSwitch["members"]:
+                            index = index - 1
+                            member, privacy = pktools.getMember(id, state.pkMembers)
+                            if privacy:
+                                member, privacy = pktools.getMember(config["pluralkit"]["defaultFronter"], state.pkMembers)
+
+                            flagGroup = [i for i in state.pkGroups if i["id"] == config["pluralkit"]["flagGroup"]][0]
+    
+                            message = message + member["name"]
+                            if member["pronouns"] is not None:
+                                message = message + " ( " + member["pronouns"] + " )"
+                            if member["uuid"] in flagGroup["members"]:
+                                message = message + " 🔞"
+                            if index != 0:
+                                message = message + ", "
+                        
+                        sendMessage(message, "filtered")
+                        
+                updateNeeded = False
 
     if reloadRequired:
         state.loadPkSystem()

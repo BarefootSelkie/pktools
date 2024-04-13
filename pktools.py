@@ -87,7 +87,7 @@ def hsTimeHuman(hsTimeObject):
 
 # Get realsapce time elapsed since a memnber last started fronting
 # Returns: integer of realspace seconds since the member started fronting
-def rsSinceLastIn(member):
+def rsSinceLastIn(member, memberSeen):
     return (datetime.datetime.utcnow() - toPythonDateTime(memberSeen[member]["lastIn"]))
 
 # Get headspace time elapsed since a member last started fronting
@@ -103,14 +103,14 @@ def hsSinceLastIn(member):
 
 # Get realsapce time elapsed since a member last stopped fronting
 # Returns: integer of realspace seconds since the member stopped fronting
-def rsLastSeen(member):
+def rsLastSeen(member, memberSeen):
     rsTimeAgo = (datetime.datetime.utcnow() - toPythonDateTime(memberSeen[member]["lastOut"]))
     return (rsTimeAgo)
 
 # Get headspace time elapsed since a member last stopped fronting
 # Returns: integer of headspace fractals since the member stopped fronting
-def hsLastSeen(member):
-    rsTimeAgo = rsLastSeen(member)
+def hsLastSeen(member, memberSeen):
+    rsTimeAgo = rsLastSeen(member, memberSeen)
     hsTimeAgo = hsFractalTohsTimeObject(
             rsSecondToFractal(
                 rsTimeAgo.total_seconds()
