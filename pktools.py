@@ -4,9 +4,11 @@ import datetime
 
 ### Data access functions ###
 
-# Return information about a particular system member
+# Return information about a particular system member, and if the member is set to private
 def getMember(memberID, pkMembers):
-    return([i for i in pkMembers if i["id"] == memberID][0])
+    member = [i for i in pkMembers if i["id"] == memberID][0]
+    private = member["privacy"]["visibility"] == "private"
+    return member, private    
 
 ### Time Converstion Functions ###
 
