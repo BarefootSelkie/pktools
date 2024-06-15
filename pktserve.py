@@ -112,17 +112,19 @@ class pktState:
                 previousSwitch = thisSwitch
                 continue
 
-            for member in previousSwitch["members"]:
-                if member not in thisSwitch["members"]:
+            for pkid in previousSwitch["members"]:
+                pkid = pkid.strip()
+                if id not in thisSwitch["members"]:
                     # A system member has left as of this switch
-                    if self.memberSeen[member]["lastOut"] < thisSwitch["timestamp"]:
-                        self.memberSeen[member]["lastOut"] = thisSwitch["timestamp"]
+                    if self.memberSeen[pkid]["lastOut"] < thisSwitch["timestamp"]:
+                        self.memberSeen[pkid]["lastOut"] = thisSwitch["timestamp"]
 
-            for member in thisSwitch["members"]:
-                if member not in previousSwitch["members"]:
+            for pkid in thisSwitch["members"]:
+                pkid = pkid.strip()
+                if pkid not in previousSwitch["members"]:
                     # A system member has joined as of this switch
-                    if self.memberSeen[member]["lastIn"] < thisSwitch["timestamp"]:
-                        self.memberSeen[member]["lastIn"] = thisSwitch["timestamp"]
+                    if self.memberSeen[pkid]["lastIn"] < thisSwitch["timestamp"]:
+                        self.memberSeen[pkid]["lastIn"] = thisSwitch["timestamp"]
             
             previousSwitch = thisSwitch
 
@@ -132,7 +134,7 @@ class pktState:
     ### Data store building functions ###
 
     # Get the raw system data from the PluralKit API and save it to disk
-    def buildPkSystem():
+    def buildPkSystem(self):
         logging.info("( buildPkSystem )")
         try:
             r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid, headers={'Authorization':pktoken})
@@ -143,7 +145,7 @@ class pktState:
             logging.warning(e) 
 
     # Get the raw data about system members from the PluralKit API and save it to disk
-    def buildPkMembers():
+    def buildPkMembers(self):
         logging.info("( buildPkMembers )")
         try:
             r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/members", headers={'Authorization':pktoken})
@@ -154,7 +156,7 @@ class pktState:
             logging.warning(e) 
 
     # Get the raw data about system groups from the PluralKit API and save it to disk
-    def buildPkGroups():
+    def buildPkGroups(self):
         logging.info("( buildPkGroups )")
         try:
             r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/groups?with_members=true", headers={'Authorization':pktoken})
@@ -165,7 +167,7 @@ class pktState:
             logging.warning(e)
 
     # Get the raw data about the most recent switch from the PluralKit API and save it to disk
-    def buildLastSwitch():
+    def buildLastSwitch(self):
         logging.info("( buildLastSwtich )")
         try:
             r = requests.get("https://api.pluralkit.me/v2/systems/" + systemid + "/switches?limit=1", headers={'Authorization':pktoken})
@@ -193,7 +195,7 @@ class pktState:
 
         # Initiailise the MemberSeen object so that we have an entry for all system members
         for member in self.pkMembers:  
-            self.memberSeen[member["id"]] = {"lastIn": zeropoint, "lastOut": zeropoint}  
+            self.memberSeen[member["id"].strip()] = {"lastIn": zeropoint, "lastOut": zeropoint}  
 
         # Keep requesting batches of switches from pluralkit
         while True:
@@ -229,7 +231,7 @@ class pktState:
 
             if (len(switches) > 1):
                 # 1) Check to see if a switch has occured
-                if ("id" not in self.lastSwitch) or (switches[0]["id"] != self.lastSwitch["id"]):
+                if ("id" not in self.lastSwitch) or (switches[0].strip() != self.lastSwitch["id"].strip()):
                     switchOccurred = True
                     self.lastSwitch = switches[0]
                     with open(self.dataLocation + "/lastSwitch.json", "w") as output_file:
@@ -307,6 +309,31 @@ reloadRequired = True
 minutePast = 0
 
 while True:
+
+    if reloadRequired:
+        state.loadPkSystem()
+        state.loadPkMembers()
+        state.loadPkGroups()
+        state.loadLastSwitch()
+        state.loadMemberSeen()
+        reloadRequired = False               
+
+    # If an update is required or forced by arg do the update
+    if updateRequired:
+        logging.info("Updating pkSystem, pkMembers, pkGroups, lastSwtich")
+        state.buildPkSystem()
+        state.buildPkMembers()
+        state.buildPkGroups()
+        state.buildLastSwitch()
+        updateRequired = False
+        reloadRequired = True
+
+    # If a rebuild is required or forced by arg do the update
+    if rebuildRequired:
+        state.buildMemberSeen()
+        rebuildRequired = False
+        reloadRequired = True
+
     # Don't do anyting if the minute hasn't changed
     if minutePast != time.localtime()[4]:
         minutePast = time.localtime()[4]
@@ -323,10 +350,14 @@ while True:
                     # Build and send full message
                     if config["discord"]["full"]["enabled"]:
                         
+                        
+                                            
                         index = len(state.lastSwitch["members"])
                         message = "Hi, "
                     
                         for id in state.lastSwitch["members"]:
+
+                            logging.info("sending discord message for user " + id)
                             index = index - 1
                             member, privacy = pktools.getMember(id, state.pkMembers)
                             message = message + member["name"]
@@ -355,7 +386,7 @@ while True:
                             if privacy:
                                 member, privacy = pktools.getMember(config["pluralkit"]["defaultFronter"], state.pkMembers)
 
-                            flagGroup = [i for i in state.pkGroups if i["id"] == config["pluralkit"]["flagGroup"]][0]
+                            flagGroup = [i for i in state.pkGroups if i["id"].strip() == config["pluralkit"]["flagGroup"]][0]
     
                             message = message + member["name"]
                             if member["pronouns"] is not None:
@@ -369,29 +400,7 @@ while True:
                         
                 updateNeeded = False
 
-    if reloadRequired:
-        state.loadPkSystem()
-        state.loadPkMembers()
-        state.loadPkGroups()
-        state.loadLastSwitch()
-        state.loadMemberSeen()
-        reloadRequired = False               
-
-    # If an update is required or forced by arg do the update
-    if updateRequired:
-        logging.info("Updating pkSystem, pkMembers, pkGroups, lastSwtich")
-        state.buildPkSystem()
-        state.buildPkMembers()
-        state.buildPkGroups()
-        state.buildLastSwitch()
-        updateRequired = False
-        reloadRequired = True
-
-    # If a rebuild is required or forced by arg do the update
-    if rebuildRequired:
-        state.buildMemberSeen()
-        rebuildRequired = False
-        reloadRequired = True
+    
 
     # At 4:00 run an update
 
