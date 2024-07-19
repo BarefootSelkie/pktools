@@ -63,6 +63,7 @@ def toPythonDateTime(input):
 # Gets the current time in headspace based on zeropoint in apikeys.json
 # returns: [cycles, seasons, weeks, days, segments, fractals]
 def hsTimeNow():
+    zeropoint = "1989-03-15T00:00:00Z"
     timeFromZero = (datetime.datetime.utcnow() - toPythonDateTime(zeropoint))
 
     hsNowObj = hsFractalTohsTimeObject(
