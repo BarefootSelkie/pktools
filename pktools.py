@@ -86,12 +86,12 @@ def hsTimeShort(hsTimeObject):
 # Convert a headspace time to a string
 # Returns: time in the format "x cycles, x seasons, x weeks, x days, x segments, x fractals"
 def hsTimeHuman(hsTimeObject):
-    return (f"{hsTimeObject[0]:d} cycles, {nameSeasons[hsTimeObject[1]:d]} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
+    return (f"{hsTimeObject[0]:d} cycles, {hsTimeObject[1]:d} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
 
 # Convert a headspace time to a string
 # Returns: time in an easy to read format
 def hsTimeEasy(hsTimeObject):
-    return (f"{hsTimeObject[0]:d}, {nameSeasons[hsTimeObject[1]]:d} ( {symbolSeasons[hsTimeObject[1]]} ), {hsTimeObject[2]:d}{hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
+    return (f"{hsTimeObject[0]:d}, {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ), {hsTimeObject[2]:d}{hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
 
 ### Member last seen, total front time, and percent fronted ###
 
