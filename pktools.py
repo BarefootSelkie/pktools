@@ -91,7 +91,7 @@ def hsTimeHuman(hsTimeObject):
 # Convert a headspace time to a string
 # Returns: time in an easy to read format
 def hsTimeEasy(hsTimeObject):
-    return (f"{hsTimeObject[0]:d}, {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ), {hsTimeObject[2]:d}{hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
+    return (f"{hsTimeObject[2]:d}{hsTimeObject[3]:d} {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ) {hsTimeObject[0]:d} {hsTimeObject[4]:d}:{hsTimeObject[5]:d}")
 
 ### Member last seen, total front time, and percent fronted ###
 
