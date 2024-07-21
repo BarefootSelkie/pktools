@@ -15,6 +15,20 @@ hsCycleLen = hsSeasonLen * 6
 nameSeasons = ["Prevernal", "Vernal", "Estival", "Serotinal", "Autumnal", "Hibernal"]
 symbolSeasons = ["🌧️", "🌱", "☀️", "🌾", "🍂", "❄️"]
 
+labelDominoH = [["🀹","🀺","🀻","🀼","🀽","🀾"],
+["🁀","🁁","🁂","🁃","🁄","🁅"],
+["🁎","🁏","🁐","🁑","🁒","🁓"],
+["🁜","🁝","🁞","🁟","🁠","🁡"],
+["🁕","🁖","🁗","🁘","🁙","🁚"],
+["🁇","🁈","🁉","🁊","🁋","🁌"]]
+
+labelDominoV = [["🁫","🁬","🁭","🁮","🁯","🁰"],
+["🁲","🁳","🁴","🁵","🁶","🁷"],
+["🁹","🁺","🁻","🁼","🁽","🁾"],
+["🂀","🂁","🂂","🂃","🂄","🂅"],
+["🂇","🂈","🂉","🂊","🂋","🂌"],
+["🂎","🂏","🂐","🂑","🂒","🂓"]]
+
 ### Data access functions ###
 
 # Return information about a particular system member, and if the member is set to private
@@ -91,7 +105,7 @@ def hsTimeHuman(hsTimeObject):
 # Convert a headspace time to a string
 # Returns: time in an easy to read format
 def hsTimeEasy(hsTimeObject):
-    return (f"{hsTimeObject[2]:d}{hsTimeObject[3]:d} {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ) {hsTimeObject[0]:d} {hsTimeObject[4]:d}:{hsTimeObject[5]:d}")
+    return (f"{labelDominoV[hsTimeObject[2]][hsTimeObject[3]]} {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ) {hsTimeObject[0]:d} {hsTimeObject[4]:d}:{hsTimeObject[5]:d}")
 
 ### Member last seen, total front time, and percent fronted ###
 
