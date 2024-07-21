@@ -1,6 +1,19 @@
 #!/usr/bin/env python3
 
 import datetime
+### Constants ###
+
+# Time constants for headspace
+hsFractal = 1 # done like this to allow for future adding for smaller units
+hsSegmentLen = hsFractal * 6
+hsDayLen = hsSegmentLen * 6
+hsWeekLen = hsDayLen * 6
+hsSeasonLen = hsWeekLen * 6
+hsCycleLen = hsSeasonLen * 6
+
+# Labels
+nameSeasons = ["Prevernal", "Vernal", "Estival", "Serotinal", "Autumnal", "Hibernal"]
+symbolSeasons = ["🌧️", "🌱", "☀️", "🌾", "🍂", "❄️"]
 
 ### Data access functions ###
 
@@ -11,14 +24,6 @@ def getMember(memberID, pkMembers):
     return member, private    
 
 ### Time Converstion Functions ###
-
-# Time constants for headspace
-hsFractal = 1 # done like this to allow for future adding for smaller units
-hsSegmentLen = hsFractal * 6
-hsDayLen = hsSegmentLen * 6
-hsWeekLen = hsDayLen * 6
-hsSeasonLen = hsWeekLen * 6
-hsCycleLen = hsSeasonLen * 6
 
 # Converts an int of headspace fractals into a headspace date time object
 # returns [cycles, seasons, weeks, days, segments, fractals]
@@ -81,7 +86,12 @@ def hsTimeShort(hsTimeObject):
 # Convert a headspace time to a string
 # Returns: time in the format "x cycles, x seasons, x weeks, x days, x segments, x fractals"
 def hsTimeHuman(hsTimeObject):
-    return (f"{hsTimeObject[0]:d} cycles, {hsTimeObject[1]:d} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
+    return (f"{hsTimeObject[0]:d} cycles, {nameSeasons[hsTimeObject[1]:d]} seasons, {hsTimeObject[2]:d} weeks, {hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
+
+# Convert a headspace time to a string
+# Returns: time in an easy to read format
+def hsTimeEasy(hsTimeObject):
+    return (f"{hsTimeObject[0]:d}, {nameSeasons[hsTimeObject[1]]:d} ( {symbolSeasons[hsTimeObject[1]]} ), {hsTimeObject[2]:d}{hsTimeObject[3]:d} days, {hsTimeObject[4]:d} segments, {hsTimeObject[5]:d} fractals")
 
 ### Member last seen, total front time, and percent fronted ###
 
