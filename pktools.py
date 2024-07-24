@@ -116,7 +116,7 @@ def hsTimeEasy(hsTimeObject):
     else:
         hsTimeBlock = labelNumFill[hsTimeObject[4]]
 
-    return (f"{labelDominoV[hsTimeObject[2]][hsTimeObject[3]]} {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ) {hsTimeObject[0]:d} {hsTimeBlock}")
+    return (f"{hsTimeBlock} - {labelDominoV[hsTimeObject[2]][hsTimeObject[3]]} {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ) {hsTimeObject[0]:d}")
 
 ### Member last seen, total front time, and percent fronted ###
 
