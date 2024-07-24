@@ -31,6 +31,10 @@ labelDominoV = [["🁫","🁬","🁭","🁮","🁯","🁰"],
 
 labelDice = ["⚀","⚁","⚂","⚃","⚄","⚅"]
 
+labelNumTrans = ["➀","➁","➂","➃","➄","➅","➆","➇","➈"]
+labelNumFill = ["➊","➋","➌","➍","➎","➏","➐","➑","➒"]
+
+
 ### Data access functions ###
 
 # Return information about a particular system member, and if the member is set to private
@@ -107,7 +111,12 @@ def hsTimeHuman(hsTimeObject):
 # Convert a headspace time to a string
 # Returns: time in an easy to read format
 def hsTimeEasy(hsTimeObject):
-    return (f"{labelDominoV[hsTimeObject[2]][hsTimeObject[3]]} {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ) {hsTimeObject[0]:d} {hsTimeObject[4]:d}:{hsTimeObject[5]:d}")
+    if hsTimeObject[4] <= 3:
+        hsTimeBlock = labelNumTrans[hsTimeObject[4]]
+    else:
+        hsTimeBlock = labelNumFill[hsTimeObject[4]]
+
+    return (f"{labelDominoV[hsTimeObject[2]][hsTimeObject[3]]} {nameSeasons[hsTimeObject[1]]} ( {symbolSeasons[hsTimeObject[1]]} ) {hsTimeObject[0]:d} {hsTimeBlock}")
 
 ### Member last seen, total front time, and percent fronted ###
 
