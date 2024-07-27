@@ -3,6 +3,10 @@ data/*
 config-pkts.yaml
 config-pktc.yaml
 
+# Copyrighted stuff
+ttf/*
+bmp/*
+
 # Logging
 output.json
 log.log

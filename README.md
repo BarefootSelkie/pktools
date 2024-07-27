@@ -21,3 +21,8 @@ hsLastSeen(member)
 rsSinceLastIn(member)
 
 hsSinceLastIn(member)
+
+## Fonts
+https://fonts.google.com/share?selection.family=Noto+Emoji:wght@300..700|Noto+Sans+Symbols+2|Noto+Sans+Symbols:wght@100..900|Noto+Sans:ital,wght@0,100..900;1,100..900
+
+https://fonts.google.com/selection?preview.text=➎%20⚀%20➁%20-%20🁹%20Hibernal%20(%20❄%EF%B8%8F%20)%20358&noto.query=symbols
